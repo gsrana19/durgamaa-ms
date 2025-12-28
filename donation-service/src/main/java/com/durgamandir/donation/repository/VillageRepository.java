@@ -13,3 +13,4 @@ public interface VillageRepository extends JpaRepository<Village, Long> {
     Optional<Village> findByNameAndThanaId(String name, Long thanaId);
 }
 
+

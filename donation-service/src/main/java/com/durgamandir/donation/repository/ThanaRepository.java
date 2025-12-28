@@ -13,3 +13,4 @@ public interface ThanaRepository extends JpaRepository<Thana, Long> {
     Optional<Thana> findByNameAndDistrictId(String name, Long districtId);
 }
 
+

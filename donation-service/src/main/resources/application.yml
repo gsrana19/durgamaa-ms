@@ -15,7 +15,7 @@ spring:
       mode: never
 
 server:
-  port: 8083
+  port: 8080
 
 donation:
   target-amount: 5000000
@@ -25,3 +25,17 @@ logging:
     org.springframework.security: DEBUG
     com.durgamandir.donation: INFO
 
+  mvc:
+    cors:
+      mappings:
+        "[/**]":
+          allowed-origins:
+            - "http://durgamaa-frontend-2025.s3-website-ap-southeast-1.amazonaws.com"
+          allowed-methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - OPTIONS
+          allowed-headers:
+            - "*"

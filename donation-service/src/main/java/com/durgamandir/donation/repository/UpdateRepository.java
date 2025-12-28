@@ -11,3 +11,4 @@ public interface UpdateRepository extends JpaRepository<Update, Long> {
     List<Update> findAllByOrderByCreatedAtDesc();
 }
 
+
