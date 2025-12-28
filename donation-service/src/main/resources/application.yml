@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: donation-service
+  profiles:
+    active: h2
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  sql:
+    init:
+      mode: never
+
+server:
+  port: 8083
+
+donation:
+  target-amount: 5000000
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    com.durgamandir.donation: INFO
+
