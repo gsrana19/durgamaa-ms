@@ -43,8 +43,14 @@ public class DonationController {
     @GetMapping("/public/paginated")
     public ResponseEntity<PaginatedDonationResponse> getPublicDonationsPaginated(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        PaginatedDonationResponse response = donationService.getPublicDonationsPaginated(page, size);
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Long stateId,
+            @RequestParam(required = false) String district,
+            @RequestParam(required = false) String thana,
+            @RequestParam(required = false) String village) {
+        PaginatedDonationResponse response = donationService.getPublicDonationsPaginated(
+                page, size, name, stateId, district, thana, village);
         return ResponseEntity.ok(response);
     }
     

@@ -23,6 +23,18 @@ public class UpdateController {
         List<UpdateResponse> updates = updateService.getAllUpdates();
         return ResponseEntity.ok(updates);
     }
+    
+    @GetMapping("/public/latest-image")
+    public ResponseEntity<UpdateResponse> getLatestUpdateWithImage() {
+        UpdateResponse update = updateService.getLatestUpdateWithImage();
+        if (update != null) {
+            return ResponseEntity.ok(update);
+        }
+        return ResponseEntity.noContent().build();
+    }
 }
+
+
+
 
 

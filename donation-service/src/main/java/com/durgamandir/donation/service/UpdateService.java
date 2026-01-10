@@ -27,6 +27,15 @@ public class UpdateService {
                 .collect(Collectors.toList());
     }
     
+    public UpdateResponse getLatestUpdateWithImage() {
+        return updateRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .filter(update -> update.getImageUrl() != null && !update.getImageUrl().trim().isEmpty())
+                .findFirst()
+                .map(this::mapToResponse)
+                .orElse(null);
+    }
+    
     public UpdateResponse createUpdate(UpdateRequest request) {
         Update update = new Update();
         update.setTitle(request.getTitle());
@@ -65,5 +74,8 @@ public class UpdateService {
         );
     }
 }
+
+
+
 
 

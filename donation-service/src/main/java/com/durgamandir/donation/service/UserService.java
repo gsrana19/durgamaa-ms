@@ -7,6 +7,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 @Service
 @Transactional
 public class UserService {
@@ -41,6 +44,25 @@ public class UserService {
         return userRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
+    
+    public void updateLastLoginTime(String userId) {
+        User user = findByUserId(userId);
+        user.setLastLoginTime(LocalDateTime.now());
+        userRepository.save(user);
+    }
+    
+    public String getLastLoginTime(String userId) {
+        User user = findByUserId(userId);
+        if (user.getLastLoginTime() == null) {
+            return null;
+        }
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return user.getLastLoginTime().format(formatter);
+    }
 }
+
+
+
+
 
 

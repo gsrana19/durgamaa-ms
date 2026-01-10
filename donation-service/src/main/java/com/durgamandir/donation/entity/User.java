@@ -26,6 +26,9 @@ public class User {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
+    @Column
+    private LocalDateTime lastLoginTime;
+    
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -71,6 +74,18 @@ public class User {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+    
+    public LocalDateTime getLastLoginTime() {
+        return lastLoginTime;
+    }
+    
+    public void setLastLoginTime(LocalDateTime lastLoginTime) {
+        this.lastLoginTime = lastLoginTime;
+    }
 }
+
+
+
+
 
 

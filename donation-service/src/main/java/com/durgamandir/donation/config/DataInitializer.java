@@ -44,14 +44,35 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        // Initialize admin user
-        if (userRepository.count() == 0) {
+        // Initialize admin user - update or create
+        User existingAdmin = userRepository.findByUserId("admin").orElse(null);
+        if (existingAdmin == null) {
+            // Create new admin user
             User admin = new User();
             admin.setUserId("admin");
-            admin.setPasswordHash(passwordEncoder.encode("admin123"));
+            String encodedPassword = passwordEncoder.encode("admin123");
+            admin.setPasswordHash(encodedPassword);
             admin.setRole("ROLE_ADMIN");
             admin.setCreatedAt(LocalDateTime.now());
             userRepository.save(admin);
+            System.out.println("========================================");
+            System.out.println("Admin user created successfully!");
+            System.out.println("Username: admin");
+            System.out.println("Password: admin123");
+            System.out.println("Encoded Password: " + encodedPassword);
+            System.out.println("========================================");
+        } else {
+            // Update existing admin password to ensure it's correct
+            String encodedPassword = passwordEncoder.encode("admin123");
+            existingAdmin.setPasswordHash(encodedPassword);
+            existingAdmin.setRole("ROLE_ADMIN");
+            userRepository.save(existingAdmin);
+            System.out.println("========================================");
+            System.out.println("Admin user password reset!");
+            System.out.println("Username: admin");
+            System.out.println("Password: admin123");
+            System.out.println("Encoded Password: " + encodedPassword);
+            System.out.println("========================================");
         }
         
         // Initialize location data

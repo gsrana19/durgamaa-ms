@@ -14,3 +14,7 @@ public interface ThanaRepository extends JpaRepository<Thana, Long> {
 }
 
 
+
+
+
+

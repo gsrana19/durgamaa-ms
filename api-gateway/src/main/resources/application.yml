@@ -1,0 +1,138 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: api-gateway
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+  cloud:
+    gateway:
+      routes:
+        # Donation Service Routes - Donations
+        - id: donation-service-donations
+          uri: lb://donation-service
+          predicates:
+            - Path=/api/donations/**
+          filters:
+            - StripPrefix=0
+        
+        # Donation Service Routes - Updates
+        - id: donation-service-updates
+          uri: lb://donation-service
+          predicates:
+            - Path=/api/updates/**
+          filters:
+            - StripPrefix=0
+        
+        # Donation Service Routes - Locations
+        - id: donation-service-locations
+          uri: lb://donation-service
+          predicates:
+            - Path=/api/locations/**
+          filters:
+            - StripPrefix=0
+        
+        # Donation Service Routes - Sankalpam
+        - id: donation-service-sankalpam
+          uri: lb://donation-service
+          predicates:
+            - Path=/api/sankalpam/**
+          filters:
+            - StripPrefix=0
+        
+        # Donation Service Routes - Events
+        - id: donation-service-events
+          uri: lb://donation-service
+          predicates:
+            - Path=/api/events/**
+          filters:
+            - StripPrefix=0
+        
+        # Booking Service Routes - Seva Bookings
+        - id: booking-service-seva-bookings
+          uri: lb://booking-service
+          predicates:
+            - Path=/api/seva-bookings/**
+          filters:
+            - StripPrefix=0
+        
+        # Booking Service Routes - Services (Special Puja, Morning Aarti, Abhishekam, Flowers)
+        - id: booking-service-services
+          uri: lb://booking-service
+          predicates:
+            - Path=/api/services/**
+          filters:
+            - StripPrefix=0
+        
+        # Donation Service Routes - Prasad Sponsorships
+        - id: donation-service-prasad-sponsorships
+          uri: lb://donation-service
+          predicates:
+            - Path=/api/prasad-sponsorships/**
+          filters:
+            - StripPrefix=0
+        
+        # Admin Routes (Donation Service)
+        - id: donation-service-admin
+          uri: lb://donation-service
+          predicates:
+            - Path=/api/admin/**
+          filters:
+            - StripPrefix=0
+        
+        # Auth Routes (Donation Service)
+        - id: donation-service-auth
+          uri: lb://donation-service
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=0
+        
+        # Static Files - Uploads (Donation Service)
+        - id: donation-service-uploads
+          uri: lb://donation-service
+          predicates:
+            - Path=/uploads/**
+          filters:
+            - StripPrefix=0
+        
+        # Booking Service Routes
+        - id: booking-service
+          uri: lb://booking-service
+          predicates:
+            - Path=/api/bookings/**
+          filters:
+            - StripPrefix=0
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    org.springframework.cloud.netflix.eureka: INFO
+    org.springframework.web.cors: DEBUG
+    com.durgamandir.gateway: DEBUG
+

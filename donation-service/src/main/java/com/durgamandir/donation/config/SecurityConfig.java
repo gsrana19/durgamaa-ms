@@ -12,7 +12,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -21,12 +20,10 @@ public class SecurityConfig {
     
     private final CustomUserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
-    private final CorsConfigurationSource corsConfigurationSource;
     
-    public SecurityConfig(CustomUserDetailsService userDetailsService, PasswordEncoder passwordEncoder, CorsConfigurationSource corsConfigurationSource) {
+    public SecurityConfig(CustomUserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
-        this.corsConfigurationSource = corsConfigurationSource;
     }
     
     @Bean
@@ -41,17 +38,26 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource))
+            // CORS is handled by API Gateway
             .sessionManagement(session -> 
                 session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/donations/**").permitAll()
                 .requestMatchers("/api/updates/public").permitAll()
+                .requestMatchers("/api/updates/public/**").permitAll() // Public access to latest image endpoint
                 .requestMatchers("/api/locations/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/sankalpam/**").permitAll()
+                .requestMatchers("/api/events").permitAll()
+                .requestMatchers("/api/events/team-members").permitAll() // Public access to team members
+                .requestMatchers("/api/events/*/media").permitAll() // Public access to view event media
+                .requestMatchers("/api/prasad-sponsorships/**").permitAll()
+                .requestMatchers("/uploads/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
+                .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/events/**").hasRole("ADMIN") // Admin-only event management
                 .anyRequest().authenticated()
             )
             .headers(headers -> headers.frameOptions().disable());

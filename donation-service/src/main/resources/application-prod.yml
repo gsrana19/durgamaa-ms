@@ -1,0 +1,90 @@
+spring:
+  application:
+    name: donation-service
+  profiles:
+    active: h2
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  sql:
+    init:
+      mode: never
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+  spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/durgamaa_donation?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: durgamaa
+    password: S@ubhash@24
+
+
+  mvc:
+    cors:
+      mappings:
+        "[/**]":
+          allowed-origins:
+            - "http://durgamaa-frontend-2025.s3-website-ap-southeast-1.amazonaws.com"
+          allowed-methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - OPTIONS
+          allowed-headers:
+            - "*"
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+server:
+  port: 8081
+  servlet:
+    session:
+      timeout: 5m  # Session timeout after 5 minutes of inactivity
+      cookie:
+        http-only: true
+        secure: false  # Set to true in production with HTTPS
+        max-age: 300  # 5 minutes in seconds
+
+donation:
+  target-amount: 5000000
+
+app:
+  media:
+    upload-dir: ./uploads/events
+    soft-delete:
+      enabled: true  # Set to false for hard delete (permanently delete files)
+      auto-restore: true  # Automatically restore deleted media when accessed
+  team:
+    upload-dir: ./uploads/team
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    com.durgamandir.donation: INFO

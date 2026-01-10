@@ -36,6 +36,11 @@ public class AuthController {
             String userId = credentials.get("userId");
             String password = credentials.get("password");
             
+            if (userId == null || password == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "UserId and password are required"));
+            }
+            
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(userId, password)
             );
@@ -47,14 +52,25 @@ public class AuthController {
                 SecurityContextHolder.getContext()
             );
             
-            Map<String, String> response = new HashMap<>();
+            // Update last login time
+            userService.updateLastLoginTime(userId);
+            String lastLoginTime = userService.getLastLoginTime(userId);
+            
+            Map<String, Object> response = new HashMap<>();
             response.put("message", "Login successful");
             response.put("sessionId", session.getId());
+            response.put("authenticated", true);
+            response.put("username", userId);
+            response.put("lastLoginTime", lastLoginTime);
+            response.put("sessionTimeout", 300); // 5 minutes in seconds
             
             return ResponseEntity.ok(response);
-        } catch (Exception e) {
+        } catch (org.springframework.security.core.AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("error", "Invalid credentials"));
+                .body(Map.of("error", "Invalid credentials", "message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Login failed", "message", e.getMessage()));
         }
     }
     

@@ -24,13 +24,15 @@ public class DonationService {
     
     private final DonationRepository donationRepository;
     private final LocationService locationService;
+    private final ExpenseService expenseService;
     
     @Value("${donation.target-amount:5000000}")
     private BigDecimal targetAmount;
     
-    public DonationService(DonationRepository donationRepository, LocationService locationService) {
+    public DonationService(DonationRepository donationRepository, LocationService locationService, ExpenseService expenseService) {
         this.donationRepository = donationRepository;
         this.locationService = locationService;
+        this.expenseService = expenseService;
     }
     
     public DonationResponse createDonation(DonationRequest request) {
@@ -72,9 +74,30 @@ public class DonationService {
                 .collect(Collectors.toList());
     }
     
-    public PaginatedDonationResponse getPublicDonationsPaginated(int page, int size) {
+    public PaginatedDonationResponse getPublicDonationsPaginated(int page, int size, 
+                                                                 String name, Long stateId,
+                                                                 String district, 
+                                                                 String thana, String village) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Donation> donationPage = donationRepository.findByShowPublicTrueOrderByCreatedAtDesc(pageable);
+        Page<Donation> donationPage;
+        
+        // Use search method if any search parameter is provided (including stateId)
+        if ((name != null && !name.trim().isEmpty()) ||
+            stateId != null ||
+            (district != null && !district.trim().isEmpty()) ||
+            (thana != null && !thana.trim().isEmpty()) ||
+            (village != null && !village.trim().isEmpty())) {
+            donationPage = donationRepository.searchPublicDonations(
+                    name != null && !name.trim().isEmpty() ? name.trim() : null,
+                    stateId,
+                    district != null && !district.trim().isEmpty() ? district.trim() : null,
+                    thana != null && !thana.trim().isEmpty() ? thana.trim() : null,
+                    village != null && !village.trim().isEmpty() ? village.trim() : null,
+                    pageable
+            );
+        } else {
+            donationPage = donationRepository.findByShowPublicTrueOrderByCreatedAtDesc(pageable);
+        }
         
         List<DonationResponse> donations = donationPage.getContent()
                 .stream()
@@ -93,6 +116,32 @@ public class DonationService {
     public List<DonationResponse> getAllDonations() {
         return donationRepository.findAll()
                 .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+    
+    public List<DonationResponse> searchAllDonations(String name, Long stateId,
+                                                     String district, String thana, String village) {
+        List<Donation> donations;
+        
+        // Use search method if any search parameter is provided
+        if ((name != null && !name.trim().isEmpty()) ||
+            stateId != null ||
+            (district != null && !district.trim().isEmpty()) ||
+            (thana != null && !thana.trim().isEmpty()) ||
+            (village != null && !village.trim().isEmpty())) {
+            donations = donationRepository.searchAllDonations(
+                    name != null && !name.trim().isEmpty() ? name.trim() : null,
+                    stateId,
+                    district != null && !district.trim().isEmpty() ? district.trim() : null,
+                    thana != null && !thana.trim().isEmpty() ? thana.trim() : null,
+                    village != null && !village.trim().isEmpty() ? village.trim() : null
+            );
+        } else {
+            donations = donationRepository.findAll();
+        }
+        
+        return donations.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -122,12 +171,23 @@ public class DonationService {
     
     public DonationStatsResponse getStats() {
         BigDecimal totalAmount = donationRepository.getTotalAmount();
-        // Use public donors count to match the public donor list
-        Long totalDonors = donationRepository.getTotalPublicDonors();
+        // Total donors count includes ALL donations (public + private)
+        // The donor list will filter to show only public donations
+        Long totalDonors = donationRepository.getTotalDonors();
         Long last7DaysCount = donationRepository.countByCreatedAtAfter(
                 LocalDateTime.now().minusDays(7));
         
-        return new DonationStatsResponse(totalAmount, totalDonors, last7DaysCount, targetAmount);
+        BigDecimal totalExpenses = expenseService.getTotalExpenses();
+        BigDecimal total = totalAmount != null ? totalAmount : BigDecimal.ZERO;
+        BigDecimal expenses = totalExpenses != null ? totalExpenses : BigDecimal.ZERO;
+        BigDecimal remainingAmount = total.subtract(expenses);
+        // Ensure remaining amount is never negative
+        if (remainingAmount.compareTo(BigDecimal.ZERO) < 0) {
+            remainingAmount = BigDecimal.ZERO;
+        }
+        
+        return new DonationStatsResponse(totalAmount, totalDonors, last7DaysCount, targetAmount,
+                totalExpenses, remainingAmount);
     }
     
     private DonationResponse mapToResponse(Donation donation) {
