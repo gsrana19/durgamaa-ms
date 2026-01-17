@@ -1,0 +1,137 @@
+# DurgaMaa Application - Production Configuration
+# Uses MySQL database on EC2 instance
+# Optimized for t3.micro (1 vCPU, 1GB RAM)
+
+spring:
+  application:
+    name: durgamaa-ms
+  
+  # MySQL Database Configuration
+  # Database Strategy: Single MySQL instance with ONE schema (durgamaa_db)
+  # All tables (donation + booking) in same database for simplicity
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/durgamaa_db?useSSL=false&serverTimezone=Asia/Kolkata&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    username: ${DB_USERNAME:durgamaa_user}
+    password: ${DB_PASSWORD:changeme}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    
+    # Connection Pool Settings (Optimized for t3.micro)
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+  
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    open-in-view: false
+  
+  # Multipart File Upload
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+      file-size-threshold: 2KB
+      location: /tmp
+  
+  # Session Configuration
+  session:
+    timeout: 5m
+    cookie:
+      http-only: true
+      secure: false  # Set to true when using HTTPS
+      max-age: 300
+
+# Server Configuration (t3.micro optimized)
+server:
+  port: 8081
+  
+  # Enable compression to reduce bandwidth
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,application/javascript,application/json
+    min-response-size: 1024
+  
+  # Tomcat thread pool (reduced for low memory)
+  tomcat:
+    threads:
+      max: 50
+      min-spare: 5
+    max-connections: 100
+    accept-count: 10
+    connection-timeout: 20000
+  
+  servlet:
+    context-path: /
+    session:
+      timeout: 5m
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
+  metrics:
+    enable:
+      jvm: true
+      system: true
+
+# Application-specific Configuration
+app:
+  donation:
+    target-amount: 5000000
+  media:
+    upload-dir: /home/ubuntu/durgamaa/uploads/events
+    soft-delete:
+      enabled: true
+      auto-restore: true
+  team:
+    upload-dir: /home/ubuntu/durgamaa/uploads/team
+
+# Logging Configuration (Production)
+# Logs to file for troubleshooting on EC2
+logging:
+  level:
+    root: INFO
+    com.durgamandir: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+  
+  file:
+    name: /home/ubuntu/durgamaa/logs/application.log
+    max-size: 10MB
+    max-history: 7
+    total-size-cap: 100MB
+  
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+  
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 7
+      total-size-cap: 100MB
