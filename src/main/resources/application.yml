@@ -82,6 +82,14 @@ app:
       auto-restore: true
   team:
     upload-dir: ./uploads/team
+  messaging:
+    enabled: true
+    temple-name: Durga Maa Temple
+    twilio:
+      account-sid: ${TWILIO_ACCOUNT_SID:}
+      auth-token: ${TWILIO_AUTH_TOKEN:}
+      from-number: ${TWILIO_FROM_NUMBER:}
+      whatsapp-from: ${TWILIO_WHATSAPP_FROM:}
 
 # Logging Configuration (Local)
 # Logs to file for troubleshooting on EC2

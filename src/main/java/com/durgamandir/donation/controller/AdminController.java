@@ -4,6 +4,8 @@ import com.durgamandir.donation.dto.AdminSignupRequest;
 import com.durgamandir.donation.dto.DonationRequest;
 import com.durgamandir.donation.dto.DonationResponse;
 import com.durgamandir.donation.dto.DonationStatsResponse;
+import com.durgamandir.donation.dto.DonationConfirmationResponse;
+import com.durgamandir.donation.dto.VerifyDonationRequest;
 import com.durgamandir.donation.dto.EventMediaResponse;
 import com.durgamandir.donation.dto.EventRequest;
 import com.durgamandir.donation.dto.EventResponse;
@@ -17,6 +19,8 @@ import com.durgamandir.donation.dto.UpdateResponse;
 import com.durgamandir.donation.dto.TeamMemberRequest;
 import com.durgamandir.donation.dto.TeamMemberResponse;
 import com.durgamandir.donation.service.TeamMemberService;
+import com.durgamandir.donation.service.DonationConfirmationService;
+import com.durgamandir.donation.entity.DonationConfirmation;
 import org.springframework.web.multipart.MultipartFile;
 import com.durgamandir.donation.service.DonationService;
 import com.durgamandir.donation.service.ExpenseService;
@@ -26,6 +30,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -44,19 +50,22 @@ public class AdminController {
     private final UserService userService;
     private final EventMediaService eventMediaService;
     private final TeamMemberService teamMemberService;
+    private final DonationConfirmationService confirmationService;
     
     public AdminController(DonationService donationService, 
                            UpdateService updateService,
                            ExpenseService expenseService,
                            UserService userService,
                            EventMediaService eventMediaService,
-                           TeamMemberService teamMemberService) {
+                           TeamMemberService teamMemberService,
+                           DonationConfirmationService confirmationService) {
         this.donationService = donationService;
         this.updateService = updateService;
         this.expenseService = expenseService;
         this.userService = userService;
         this.eventMediaService = eventMediaService;
         this.teamMemberService = teamMemberService;
+        this.confirmationService = confirmationService;
     }
     
     
@@ -316,6 +325,59 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to delete team member"));
         } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+    
+    // Donation Confirmation endpoints
+    @GetMapping("/donation-confirmations")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<DonationConfirmationResponse>> getDonationConfirmations(
+            @RequestParam(required = false) String status) {
+        try {
+            List<DonationConfirmationResponse> confirmations;
+            if (status != null && !status.isEmpty()) {
+                DonationConfirmation.Status statusEnum = DonationConfirmation.Status.valueOf(status.toUpperCase());
+                confirmations = confirmationService.getConfirmationsByStatus(statusEnum);
+            } else {
+                confirmations = confirmationService.getAllConfirmations();
+            }
+            return ResponseEntity.ok(confirmations);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @PostMapping("/donation-confirmations/{id}/verify")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> verifyDonation(
+            @PathVariable Long id,
+            @Valid @RequestBody VerifyDonationRequest request) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String verifiedBy = auth != null ? auth.getName() : "admin";
+            DonationConfirmationResponse response = confirmationService.verifyConfirmation(id, verifiedBy, request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+    
+    @PostMapping("/donation-confirmations/{id}/reject")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> rejectDonation(
+            @PathVariable Long id,
+            @Valid @RequestBody VerifyDonationRequest request) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String verifiedBy = auth != null ? auth.getName() : "admin";
+            DonationConfirmationResponse response = confirmationService.rejectConfirmation(id, verifiedBy, request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
