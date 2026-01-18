@@ -35,9 +35,11 @@ public class DonationConfirmation {
     @Column(nullable = false)
     private String method; // UPI, Bank Transfer
     
-    @NotNull
-    @Column(nullable = false, unique = true)
-    private String utr; // UTR or Transaction ID
+    @Column(nullable = true, unique = true)
+    private String utr; // UTR or Transaction ID (optional if transactionScreenshot is provided)
+    
+    @Column(nullable = true)
+    private String transactionScreenshot; // URL to uploaded transaction screenshot (optional if utr is provided)
     
     @Column(nullable = true, columnDefinition = "TEXT")
     private String message;
@@ -169,6 +171,14 @@ public class DonationConfirmation {
     
     public void setAdminNote(String adminNote) {
         this.adminNote = adminNote;
+    }
+    
+    public String getTransactionScreenshot() {
+        return transactionScreenshot;
+    }
+    
+    public void setTransactionScreenshot(String transactionScreenshot) {
+        this.transactionScreenshot = transactionScreenshot;
     }
 }
 

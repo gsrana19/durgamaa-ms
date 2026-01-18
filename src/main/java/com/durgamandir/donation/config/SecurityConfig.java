@@ -71,6 +71,7 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/donations/**").permitAll()
+                .requestMatchers("/api/donation-confirmations/**").permitAll() // Public access for payment confirmations and screenshot uploads
                 .requestMatchers("/api/updates/public").permitAll()
                 .requestMatchers("/api/updates/public/**").permitAll() // Public access to latest image endpoint
                 .requestMatchers("/api/locations/**").permitAll()

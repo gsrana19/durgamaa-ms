@@ -14,8 +14,9 @@ public class DonationConfirmationRequest {
     @NotNull
     private String method; // UPI, Bank Transfer
     
-    @NotNull
-    private String utr; // UTR or Transaction ID
+    private String utr; // UTR or Transaction ID (optional if transactionScreenshot is provided)
+    
+    private String transactionScreenshot; // URL to uploaded transaction screenshot (optional if utr is provided)
     
     private String name;
     
@@ -81,6 +82,14 @@ public class DonationConfirmationRequest {
     
     public void setPurpose(String purpose) {
         this.purpose = purpose;
+    }
+    
+    public String getTransactionScreenshot() {
+        return transactionScreenshot;
+    }
+    
+    public void setTransactionScreenshot(String transactionScreenshot) {
+        this.transactionScreenshot = transactionScreenshot;
     }
 }
 

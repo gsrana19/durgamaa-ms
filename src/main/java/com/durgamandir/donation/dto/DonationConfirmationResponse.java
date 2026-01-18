@@ -11,6 +11,7 @@ public class DonationConfirmationResponse {
     private BigDecimal amount;
     private String method;
     private String utr;
+    private String transactionScreenshot; // URL to uploaded transaction screenshot
     private String message;
     private String purpose; // e.g., "Donation", "Seva Booking - Annapurna Seva"
     private DonationConfirmation.Status status;
@@ -29,6 +30,7 @@ public class DonationConfirmationResponse {
         this.amount = confirmation.getAmount();
         this.method = confirmation.getMethod();
         this.utr = confirmation.getUtr();
+        this.transactionScreenshot = confirmation.getTransactionScreenshot();
         this.message = confirmation.getMessage();
         this.purpose = confirmation.getPurpose();
         this.status = confirmation.getStatus();
@@ -141,6 +143,14 @@ public class DonationConfirmationResponse {
     
     public void setAdminNote(String adminNote) {
         this.adminNote = adminNote;
+    }
+    
+    public String getTransactionScreenshot() {
+        return transactionScreenshot;
+    }
+    
+    public void setTransactionScreenshot(String transactionScreenshot) {
+        this.transactionScreenshot = transactionScreenshot;
     }
 }
 

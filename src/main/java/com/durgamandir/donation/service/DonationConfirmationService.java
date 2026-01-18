@@ -46,8 +46,16 @@ public class DonationConfirmationService {
             throw new IllegalArgumentException("Mobile number must be 10 digits starting with 6-9");
         }
         
-        // Check if UTR already exists
-        if (repository.existsByUtr(request.getUtr())) {
+        // Validate: Either UTR or transactionScreenshot must be provided
+        String utr = request.getUtr() != null ? request.getUtr().trim() : null;
+        String transactionScreenshot = request.getTransactionScreenshot() != null ? request.getTransactionScreenshot().trim() : null;
+        
+        if ((utr == null || utr.isEmpty()) && (transactionScreenshot == null || transactionScreenshot.isEmpty())) {
+            throw new IllegalArgumentException("Either UTR/Transaction ID or Transaction Screenshot must be provided");
+        }
+        
+        // Check if UTR already exists (only if UTR is provided)
+        if (utr != null && !utr.isEmpty() && repository.existsByUtr(utr)) {
             throw new IllegalArgumentException("UTR already exists. Please check your UTR/Transaction ID.");
         }
         
@@ -56,7 +64,8 @@ public class DonationConfirmationService {
         confirmation.setMobile(cleanMobile);
         confirmation.setAmount(request.getAmount());
         confirmation.setMethod(request.getMethod());
-        confirmation.setUtr(request.getUtr());
+        confirmation.setUtr(utr); // Can be null if transactionScreenshot is provided
+        confirmation.setTransactionScreenshot(transactionScreenshot); // Can be null if utr is provided
         confirmation.setMessage(request.getMessage());
         confirmation.setPurpose(request.getPurpose()); // Store purpose (Donation, Seva Booking, etc.)
         confirmation.setStatus(DonationConfirmation.Status.PENDING);
