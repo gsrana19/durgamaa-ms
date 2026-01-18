@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/donations")
+@RequestMapping("/api/donation-confirmations")
 public class DonationConfirmationController {
     
     private final DonationConfirmationService confirmationService;
@@ -20,7 +20,7 @@ public class DonationConfirmationController {
         this.confirmationService = confirmationService;
     }
     
-    @PostMapping("/confirm")
+    @PostMapping
     public ResponseEntity<DonationConfirmationResponse> confirmDonation(
             @Valid @RequestBody DonationConfirmationRequest request) {
         try {
