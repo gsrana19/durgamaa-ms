@@ -42,6 +42,9 @@ public class DonationConfirmation {
     @Column(nullable = true, columnDefinition = "TEXT")
     private String message;
     
+    @Column(nullable = true)
+    private String purpose; // e.g., "Donation", "Seva Booking - Annapurna Seva"
+    
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.PENDING;
@@ -118,6 +121,14 @@ public class DonationConfirmation {
     
     public void setMessage(String message) {
         this.message = message;
+    }
+    
+    public String getPurpose() {
+        return purpose;
+    }
+    
+    public void setPurpose(String purpose) {
+        this.purpose = purpose;
     }
     
     public Status getStatus() {

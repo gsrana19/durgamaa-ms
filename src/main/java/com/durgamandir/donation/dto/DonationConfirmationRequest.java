@@ -24,6 +24,8 @@ public class DonationConfirmationRequest {
     
     private String message;
     
+    private String purpose; // e.g., "Donation", "Seva Booking - Annapurna Seva"
+    
     // Getters and Setters
     public BigDecimal getAmount() {
         return amount;
@@ -71,6 +73,14 @@ public class DonationConfirmationRequest {
     
     public void setMessage(String message) {
         this.message = message;
+    }
+    
+    public String getPurpose() {
+        return purpose;
+    }
+    
+    public void setPurpose(String purpose) {
+        this.purpose = purpose;
     }
 }
 

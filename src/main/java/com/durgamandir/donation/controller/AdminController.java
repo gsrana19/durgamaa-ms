@@ -132,6 +132,19 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
     
+    @PostMapping("/updates/{id}/set-featured")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UpdateResponse> setFeaturedImage(
+            @PathVariable Long id,
+            @RequestParam Boolean featured) {
+        try {
+            UpdateResponse response = updateService.setFeaturedImage(id, featured);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
     @GetMapping("/expenses")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getExpenses(

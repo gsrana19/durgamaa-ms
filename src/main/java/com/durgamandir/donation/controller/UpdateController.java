@@ -24,6 +24,21 @@ public class UpdateController {
         return ResponseEntity.ok(updates);
     }
     
+    @GetMapping
+    public ResponseEntity<List<UpdateResponse>> getUpdates(
+            @RequestParam(required = false, defaultValue = "0") int limit,
+            @RequestParam(required = false, defaultValue = "desc") String sort) {
+        int actualLimit = limit > 0 ? limit : Integer.MAX_VALUE;
+        List<UpdateResponse> updates = updateService.getPublicUpdates(actualLimit);
+        return ResponseEntity.ok(updates);
+    }
+    
+    @GetMapping("/images")
+    public ResponseEntity<List<UpdateResponse>> getAllImages() {
+        List<UpdateResponse> images = updateService.getAllImages();
+        return ResponseEntity.ok(images);
+    }
+    
     @GetMapping("/public/latest-image")
     public ResponseEntity<UpdateResponse> getLatestUpdateWithImage() {
         UpdateResponse update = updateService.getLatestUpdateWithImage();

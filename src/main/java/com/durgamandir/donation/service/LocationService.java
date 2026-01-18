@@ -95,6 +95,48 @@ public class LocationService {
                 .map(v -> v.getName())
                 .orElse("Unknown");
     }
+    
+    /**
+     * Get default location IDs for temple location (India -> Jharkhand -> Hazaribag -> Ichak -> Mangura)
+     * Used when creating donation records from payment confirmations
+     * @return array [countryId, stateId, districtId, thanaId, villageId] or null if not found
+     */
+    public Long[] getDefaultLocationIds() {
+        try {
+            // Find India
+            Long countryId = countryRepository.findByName("India")
+                    .map(c -> c.getId())
+                    .orElse(null);
+            if (countryId == null) return null;
+            
+            // Find Jharkhand
+            Long stateId = stateRepository.findByNameAndCountryId("Jharkhand", countryId)
+                    .map(s -> s.getId())
+                    .orElse(null);
+            if (stateId == null) return null;
+            
+            // Find Hazaribag
+            Long districtId = districtRepository.findByNameAndStateId("Hazaribag", stateId)
+                    .map(d -> d.getId())
+                    .orElse(null);
+            if (districtId == null) return null;
+            
+            // Find Ichak
+            Long thanaId = thanaRepository.findByNameAndDistrictId("Ichak", districtId)
+                    .map(t -> t.getId())
+                    .orElse(null);
+            if (thanaId == null) return null;
+            
+            // Find Mangura
+            Long villageId = villageRepository.findByNameAndThanaId("Mangura", thanaId)
+                    .map(v -> v.getId())
+                    .orElse(null);
+            
+            return new Long[]{countryId, stateId, districtId, thanaId, villageId};
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }
 
 

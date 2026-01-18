@@ -28,19 +28,45 @@ public class UpdateService {
     }
     
     public UpdateResponse getLatestUpdateWithImage() {
+        // First try to find a featured update with image
         return updateRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
-                .filter(update -> update.getImageUrl() != null && !update.getImageUrl().trim().isEmpty())
+                .filter(update -> {
+                    // Check if update has images (either imageUrl or imageUrls)
+                    return (update.getImageUrl() != null && !update.getImageUrl().trim().isEmpty()) ||
+                           (update.getImageUrls() != null && !update.getImageUrls().isEmpty());
+                })
+                .filter(update -> Boolean.TRUE.equals(update.getIsFeatured()))
                 .findFirst()
                 .map(this::mapToResponse)
-                .orElse(null);
+                .orElseGet(() -> {
+                    // Fallback to latest update with image if no featured image
+                    return updateRepository.findAllByOrderByCreatedAtDesc()
+                            .stream()
+                            .filter(update -> {
+                                // Check if update has images (either imageUrl or imageUrls)
+                                return (update.getImageUrl() != null && !update.getImageUrl().trim().isEmpty()) ||
+                                       (update.getImageUrls() != null && !update.getImageUrls().isEmpty());
+                            })
+                            .findFirst()
+                            .map(this::mapToResponse)
+                            .orElse(null);
+                });
     }
     
     public UpdateResponse createUpdate(UpdateRequest request) {
         Update update = new Update();
         update.setTitle(request.getTitle());
         update.setMessage(request.getMessage());
-        update.setImageUrl(request.getImageUrl());
+        update.setIsFeatured(request.getIsFeatured() != null ? request.getIsFeatured() : false);
+        update.setIsPublished(request.getIsPublished() != null ? request.getIsPublished() : true);
+        
+        // Handle images - prefer imageUrls over imageUrl
+        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+            update.setImageUrls(request.getImageUrls());
+        } else if (request.getImageUrl() != null && !request.getImageUrl().trim().isEmpty()) {
+            update.setImageUrl(request.getImageUrl());
+        }
         
         Update saved = updateRepository.save(update);
         return mapToResponse(saved);
@@ -52,16 +78,82 @@ public class UpdateService {
         
         update.setTitle(request.getTitle());
         update.setMessage(request.getMessage());
-        if (request.getImageUrl() != null) {
+        
+        // Handle images - prefer imageUrls over imageUrl
+        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+            update.setImageUrls(request.getImageUrls());
+        } else if (request.getImageUrl() != null && !request.getImageUrl().trim().isEmpty()) {
             update.setImageUrl(request.getImageUrl());
+        }
+        
+        if (request.getIsFeatured() != null) {
+            update.setIsFeatured(request.getIsFeatured());
+        }
+        if (request.getIsPublished() != null) {
+            update.setIsPublished(request.getIsPublished());
         }
         
         Update updated = updateRepository.save(update);
         return mapToResponse(updated);
     }
     
+    public UpdateResponse setFeaturedImage(Long id, Boolean featured) {
+        Update update = updateRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Update not found"));
+        
+        if (featured && update.getImageUrl() == null) {
+            throw new IllegalArgumentException("Cannot set featured status for update without image");
+        }
+        
+        // If setting as featured, unset all other featured updates
+        if (featured) {
+            updateRepository.findAll().forEach(u -> {
+                if (Boolean.TRUE.equals(u.getIsFeatured()) && !u.getId().equals(id)) {
+                    u.setIsFeatured(false);
+                    updateRepository.save(u);
+                }
+            });
+        }
+        
+        update.setIsFeatured(featured);
+        Update saved = updateRepository.save(update);
+        return mapToResponse(saved);
+    }
+    
     public void deleteUpdate(Long id) {
         updateRepository.deleteById(id);
+    }
+    
+    public List<UpdateResponse> getPublicUpdates(int limit) {
+        List<Update> updates = updateRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .filter(update -> Boolean.TRUE.equals(update.getIsPublished()))
+                .limit(limit > 0 ? limit : Integer.MAX_VALUE)
+                .collect(java.util.stream.Collectors.toList());
+        return updates.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+    
+    public List<UpdateResponse> getAllImages() {
+        // Flatten all images from published updates
+        return updateRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .filter(update -> Boolean.TRUE.equals(update.getIsPublished()))
+                .filter(update -> {
+                    List<String> images = update.getImageUrls();
+                    return images != null && !images.isEmpty();
+                })
+                .flatMap(update -> {
+                    List<String> images = update.getImageUrls();
+                    return images.stream().map(imageUrl -> {
+                        UpdateResponse response = mapToResponse(update);
+                        response.setImageUrls(List.of(imageUrl)); // Single image per response
+                        response.setMessage(null); // Don't include message in gallery
+                        return response;
+                    });
+                })
+                .collect(Collectors.toList());
     }
     
     private UpdateResponse mapToResponse(Update update) {
@@ -70,6 +162,9 @@ public class UpdateService {
                 update.getTitle(),
                 update.getMessage(),
                 update.getImageUrl(),
+                update.getImageUrls(),
+                update.getIsFeatured(),
+                update.getIsPublished(),
                 update.getCreatedAt()
         );
     }

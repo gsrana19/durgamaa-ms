@@ -12,6 +12,7 @@ public class DonationConfirmationResponse {
     private String method;
     private String utr;
     private String message;
+    private String purpose; // e.g., "Donation", "Seva Booking - Annapurna Seva"
     private DonationConfirmation.Status status;
     private LocalDateTime createdAt;
     private LocalDateTime verifiedAt;
@@ -29,6 +30,7 @@ public class DonationConfirmationResponse {
         this.method = confirmation.getMethod();
         this.utr = confirmation.getUtr();
         this.message = confirmation.getMessage();
+        this.purpose = confirmation.getPurpose();
         this.status = confirmation.getStatus();
         this.createdAt = confirmation.getCreatedAt();
         this.verifiedAt = confirmation.getVerifiedAt();
@@ -91,6 +93,14 @@ public class DonationConfirmationResponse {
     
     public void setMessage(String message) {
         this.message = message;
+    }
+    
+    public String getPurpose() {
+        return purpose;
+    }
+    
+    public void setPurpose(String purpose) {
+        this.purpose = purpose;
     }
     
     public DonationConfirmation.Status getStatus() {
