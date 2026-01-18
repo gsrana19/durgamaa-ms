@@ -13,3 +13,4 @@ public interface DonationConfirmationRepository extends JpaRepository<DonationCo
     boolean existsByUtr(String utr);
 }
 
+

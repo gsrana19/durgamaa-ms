@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/donation-confirmations")
 public class DonationConfirmationController {
@@ -21,13 +23,13 @@ public class DonationConfirmationController {
     }
     
     @PostMapping
-    public ResponseEntity<DonationConfirmationResponse> confirmDonation(
+    public ResponseEntity<?> confirmDonation(
             @Valid @RequestBody DonationConfirmationRequest request) {
         try {
             DonationConfirmationResponse response = confirmationService.createConfirmation(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 }
