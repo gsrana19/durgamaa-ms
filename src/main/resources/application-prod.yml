@@ -5,6 +5,8 @@
 spring:
   application:
     name: durgamaa-ms
+  profiles:
+    active: prod
   
   # MySQL Database Configuration
   # Database Strategy: Single MySQL instance with ONE schema (durgamaa_db)
