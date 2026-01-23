@@ -5,8 +5,6 @@
 spring:
   application:
     name: durgamaa-ms
-  profiles:
-    active: prod
   
   # MySQL Database Configuration
   # Database Strategy: Single MySQL instance with ONE schema (durgamaa_db)
@@ -123,7 +121,7 @@ logging:
     org.hibernate.SQL: WARN
   
   file:
-    name: /home/ubuntu/durgamaa/logs/application.log
+    name: //opt/durgamaa/logs/durgamaa-ms.log
     max-size: 10MB
     max-history: 7
     total-size-cap: 100MB
